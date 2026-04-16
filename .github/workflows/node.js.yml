@@ -1,0 +1,33 @@
+name: Node.js CICD
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  complie:
+    runs-on: Agent-1
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: setup node.js 
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+      - name: frontend compilation (syntax check)
+        run: |
+          cd client
+          find . -name "*.js"  -exec node --check {} +  #what this comaand exactly do? can you explain in detail?
+  # The above command is used to perform a syntax check on all JavaScript files in the "client"
+  # directory and its subdirectories. Here's a breakdown of the command:
+  # 1. `find . -name "*.js"`: This part of the command searches for all files with a ".js" extension starting 
+  #from the current directory (denoted by ".") and its subdirectories. It will return a list of all JavaScript files found.
+  # 2. `-exec node --check {} +`: This part of the command executes the `node --check` command on each of the files found by the `find` command.
+  # The `{}` is a placeholder that represents each file found by the `find` command. The `+` at the end allows for multiple files to be 
+  #processed in a single command, which can be more efficient than running the command separately for each file.
+      - name: backend compilation (syntax check)
+        run: |
+          cd api
+          find . -name "*.js"  -exec node --check {} +  
