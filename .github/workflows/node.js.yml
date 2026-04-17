@@ -122,7 +122,7 @@ jobs:
             with:
                context: ./api
                push: true
-               tags: LAKSHMIPSTHIROYAL/backend:latest
+               tags: LAKSHMIPATHIROYAL/backend:latest
                file: ./api/Dockerfile
   build_frontend_docker_image_push:
         runs-on: ubuntu-latest
@@ -146,6 +146,6 @@ jobs:
             with:
                context: ./client
                push: true
-               tags: LAKSHMIPSTHIROYAL/frontend:latest
+               tags: LAKSHMIPATHIROYAL/frontend:latest
                file: ./client/Dockerfile
           
