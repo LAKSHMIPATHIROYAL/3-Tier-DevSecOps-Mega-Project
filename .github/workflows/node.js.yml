@@ -148,4 +148,30 @@ jobs:
                push: true
                tags: lakshmipathiroyal/frontend:latest
                file: ./client/Dockerfile
+  trivy_image_scan:
+        runs-on: Agent-1
+        needs: build_frontend_docker_image_push
+        steps:
+          - name: Checkout code
+            uses: actions/checkout@v4
+          - name: Run Trivy vulnerability scanner in image mode for backend
+            uses: aquasecurity/trivy-action@v0.20.0
+            with:
+              scan-type: 'image'
+              scan-ref: 'lakshmipathiroyal/backend:latest'
+              format: 'table'
+              exit-code: '0'
+              ignore-unfixed: true
+              vuln_type: 'os,library'
+              severity: 'CRITICAL,HIGH'
+
+          - name: Run Trivy vulnerability scanner in image mode for frontend
+            uses: aquasecurity/trivy-action@v0.20.0
+            with:
+              scan-type: 'image'
+              scan-ref: 'lakshmipathiroyal/frontend:latest'
+              format: 'table'
+              ignore-unfixed: true
+              vuln_type: 'os,library'
+              severity: 'CRITICAL,HIGH'
           
