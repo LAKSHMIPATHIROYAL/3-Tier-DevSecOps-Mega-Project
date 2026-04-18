@@ -174,4 +174,50 @@ jobs:
               ignore-unfixed: true
               vuln_type: 'os,library'
               severity: 'CRITICAL,HIGH'
+  deploy_to_kubernetes:
+        runs-on: Agent-1
+        needs: trivy_image_scan
+        steps:
+          - name: Checkout code
+            uses: actions/checkout@v4
+          - name: install aws cli
+            run: |
+              curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+              unzip awscliv2.zip
+              sudo ./aws/install --update
+          - name: Configure AWS credentials
+            uses: aws-actions/configure-aws-credentials@v2
+            with:
+              aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+              aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+              aws-region: ap-south-1
+          - name: Set up kubectl
+            uses: azure/setup-kubectl@v3  # why are we using azure setup kubectl action for setting up kubectl for AWS EKS cluster? can you explain in detail?
+                                          # We are using the azure/setup-kubectl action to set up kubectl for our 
+                                          #AWS EKS cluster because this action provides a convenient way to install and configure kubectl in our 
+                                          #GitHub Actions workflow. The azure/setup-kubectl action is not limited to Azure Kubernetes Service (AKS)
+                                          # and can be used to set up kubectl for any Kubernetes cluster, including AWS EKS. By using this action,
+                                          # we can easily manage our Kubernetes deployments without having to manually install and configure kubectl in our workflow.
+            with:
+              version: 'latest'
+          - name: configure kubeconfig for EKS cluster             #what is kubeconfig file and why do we need to configure it for EKS cluster? can you explain in detail?
+                                                          # The kubeconfig file is a configuration file used by kubectl to access 
+                                                          #and manage Kubernetes clusters. It contains information about the clusters, users, and contexts
+                                                          # that kubectl can use to connect to different Kubernetes clusters. When we want to deploy our 
+                                                          #application to an AWS EKS cluster, we need to configure the kubeconfig file with the necessary
+                                                        # credentials and cluster information so that kubectl can authenticate and communicate with the 
+                                                        #EKS cluster. This allows us to run kubectl commands to deploy our application, manage resources, 
+                                                        #and perform other operations on the EKS cluster from our GitHub Actions workflow.
+            run: |                                       # what is the below command doing? can you explain in detail?
+              mkdir -p $HOME/.kube                                        # This command creates a directory named ".kube" in the home directory of the user running the GitHub Actions workflow. The "-p" flag ensures that the parent directories are created if they do not already exist.
+              echo "${{ secrets.KUBECONFIG }}" > $HOME/.kube/config   # This command takes the value of the KUBECONFIG secret, which is expected to be a string containing the contents of a kubeconfig file, and writes it to a file named "config" in the ".kube" directory created in the previous step. This effectively configures kubectl to use the provided kubeconfig for authentication and communication with the Kubernetes cluster.
+
+          - name: Deploy to Kubernetes
+            run: |
+              kubectl apply -f k8s-prod/sc.yaml
+              kubectl apply -f k8s-prod/mysql.yaml
+              kubectl apply -f k8s-prod/backend.yaml
+              kubectl apply -f k8s-prod/frontend.yaml
+              kubectl apply -f k8s-prod/ingress.yaml
+              kubectl apply -f k8s-prod/ci.yaml
           
